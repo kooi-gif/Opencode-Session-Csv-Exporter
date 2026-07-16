@@ -1,0 +1,18 @@
+{
+  "name": "opencode-session-csv-exporter",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Export opencode sessions to a CSV file automatically on startup",
+  "license": "MIT",
+  "keywords": [
+    "opencode",
+    "plugin",
+    "csv",
+    "session",
+    "history"
+  ],
+  "scripts": {
+    "install:opencode": "node install.js",
+    "uninstall:opencode": "node uninstall.js"
+  }
+}
