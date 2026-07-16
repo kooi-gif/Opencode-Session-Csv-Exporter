@@ -142,14 +142,6 @@ npm run uninstall:opencode
 └── uninstall.js
 ```
 
-## 发布到 GitHub 的建议
-
-最简单的做法是把整个 `opencode-session-csv-exporter/` 目录作为一个独立仓库上传。
-
-推荐仓库名：
-
-- `opencode-session-csv-exporter`
-- `opencode-session-exporter`
 
 ## English
 
