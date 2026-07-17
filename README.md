@@ -55,12 +55,6 @@ CSV 默认输出到 opencode 全局配置目录：
 ~/.config/opencode/opencode_sessions.csv
 ```
 
-在你这台机器上对应的是：
-
-```text
-C:\Users\永远的神-骁柯\.config\opencode\opencode_sessions.csv
-```
-
 这样以后始终只维护一份总 CSV，不会在每个项目目录里各写一份副本。
 
 ## 数据来源
