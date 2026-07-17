@@ -1,5 +1,5 @@
-const fs = require("node:fs/promises")
-const path = require("node:path")
+import fs from "node:fs/promises"
+import path from "node:path"
 
 const HISTORY_DIR = "history"
 const SESSIONS_DIR = "sessions"
@@ -187,7 +187,7 @@ async function writeAgentsFile(projectRoot, index) {
   await fs.writeFile(agentsPath, next, "utf8")
 }
 
-module.exports = async ({ project }) => {
+export const SaveHistoryPlugin = async ({ project }) => {
   const projectRoot = getProjectRoot(project)
   const historyRoot = path.join(projectRoot, HISTORY_DIR)
   const latestRawPath = path.join(historyRoot, RAW_FILE)

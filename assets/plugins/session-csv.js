@@ -1,10 +1,8 @@
-const fs = require("node:fs/promises")
-const os = require("node:os")
-const path = require("node:path")
-const sqlite = require("node:sqlite")
+import fs from "node:fs/promises"
+import os from "node:os"
+import path from "node:path"
 
 const OUTPUT_FILE = path.join(os.homedir(), ".config", "opencode", "opencode_sessions.csv")
-const DB_PATH = path.join(os.homedir(), ".local", "share", "opencode", "opencode.db")
 const CSV_HEADERS = [
   "session_id",
   "title",
@@ -56,81 +54,36 @@ function buildCsv(rows) {
   return `\ufeff${lines.join("\n")}\n`
 }
 
-function loadSessions() {
-  const db = new sqlite.DatabaseSync(DB_PATH, { readonly: true })
-  try {
-    const query = `
-      select
-        s.id as session_id,
-        s.title as title,
-        s.directory as directory,
-        s.path as session_path,
-        p.worktree as project_worktree,
-        w.directory as workspace_directory,
-        s.agent as agent,
-        s.model as model,
-        coalesce(msg.message_count, 0) as message_count,
-        coalesce(inp.input_count, 0) as input_count,
-        coalesce(inp.first_prompt, '') as first_prompt,
-        s.time_created as created_at_raw,
-        s.time_updated as updated_at_raw
-      from session s
-      left join project p on p.id = s.project_id
-      left join workspace w on w.id = s.workspace_id
-      left join (
-        select session_id, count(*) as message_count
-        from message
-        group by session_id
-      ) msg on msg.session_id = s.id
-      left join (
-        select
-          m.session_id as session_id,
-          count(*) as input_count,
-          (
-            select json_extract(p2.data, '$.text')
-            from message m2
-            join part p2 on p2.message_id = m2.id
-            where m2.session_id = m.session_id
-              and json_extract(m2.data, '$.role') = 'user'
-              and json_extract(p2.data, '$.type') = 'text'
-            order by m2.time_created asc, p2.time_created asc
-            limit 1
-          ) as first_prompt
-        from message m
-        where json_extract(m.data, '$.role') = 'user'
-        group by m.session_id
-      ) inp on inp.session_id = s.id
-      order by s.time_created desc
-    `
+async function loadSessions($) {
+  const query = `select s.id as session_id, s.title as title, s.directory as directory, s.path as session_path, p.worktree as project_worktree, w.directory as workspace_directory, s.agent as agent, s.model as model, coalesce(msg.message_count, 0) as message_count, coalesce(inp.input_count, 0) as input_count, coalesce(inp.first_prompt, '') as first_prompt, s.time_created as created_at_raw, s.time_updated as updated_at_raw from session s left join project p on p.id = s.project_id left join workspace w on w.id = s.workspace_id left join (select session_id, count(*) as message_count from message group by session_id) msg on msg.session_id = s.id left join (select m.session_id as session_id, count(*) as input_count, (select json_extract(p2.data, '$.text') from message m2 join part p2 on p2.message_id = m2.id where m2.session_id = m.session_id and json_extract(m2.data, '$.role') = 'user' and json_extract(p2.data, '$.type') = 'text' order by m2.time_created asc, p2.time_created asc limit 1) as first_prompt from message m where json_extract(m.data, '$.role') = 'user' group by m.session_id) inp on inp.session_id = s.id order by s.time_created desc`
 
-    return db.prepare(query).all().map((row) => ({
-      session_id: row.session_id,
-      title: row.title,
-      directory: row.directory,
-      session_path: row.session_path,
-      project_worktree: row.project_worktree,
-      workspace_directory: row.workspace_directory,
-      agent: row.agent,
-      model: row.model,
-      message_count: row.message_count,
-      input_count: row.input_count,
-      first_prompt: compactText(row.first_prompt, 240),
-      created_at: toIso(row.created_at_raw),
-      updated_at: toIso(row.updated_at_raw),
-    }))
-  } finally {
-    db.close()
-  }
+  const { stdout } = await $`opencode db "${query}" --format json`
+  const rows = JSON.parse(stdout.toString())
+
+  return rows.map((row) => ({
+    session_id: row.session_id,
+    title: row.title,
+    directory: row.directory,
+    session_path: row.session_path,
+    project_worktree: row.project_worktree,
+    workspace_directory: row.workspace_directory,
+    agent: row.agent,
+    model: row.model,
+    message_count: row.message_count,
+    input_count: row.input_count,
+    first_prompt: compactText(row.first_prompt, 240),
+    created_at: toIso(row.created_at_raw),
+    updated_at: toIso(row.updated_at_raw),
+  }))
 }
 
-async function writeSessionCsv(projectRoot) {
-  const rows = loadSessions()
-  const outputPath = OUTPUT_FILE
-  await fs.mkdir(path.dirname(outputPath), { recursive: true })
-  await fs.writeFile(outputPath, buildCsv(rows), "utf8")
+async function writeSessionCsv($) {
+  const rows = await loadSessions($)
+  await fs.mkdir(path.dirname(OUTPUT_FILE), { recursive: true })
+  await fs.writeFile(OUTPUT_FILE, buildCsv(rows), "utf8")
 }
 
-module.exports = async ({ project }) => {
+export const SessionCsvPlugin = async ({ project, $ }) => {
   const projectRoot = getProjectRoot(project)
   let writeInFlight = null
   let pendingWrite = false
@@ -143,7 +96,7 @@ module.exports = async ({ project }) => {
       .then(async () => {
         while (pendingWrite) {
           pendingWrite = false
-          await writeSessionCsv(projectRoot)
+          await writeSessionCsv($)
         }
       })
       .catch(() => {})

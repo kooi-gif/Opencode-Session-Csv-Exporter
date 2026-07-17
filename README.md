@@ -28,7 +28,7 @@
 - 记录每个 session 的标题、目录路径、模型、时间、首条用户输入
 - 自动保存每个会话的事件摘要和原始快照到 `history/` 目录
 - 重点保留 `directory`，方便你知道这个 session 当时开在哪个目录
-- 不依赖第三方 sqlite npm 包，直接使用 Node 24 自带 `node:sqlite`
+- 不依赖第三方 sqlite npm 包，通过 `opencode db` CLI 查询数据库
 - 提供 `/his_sess` 命令，在 TUI 中快速打开 CSV
 
 ## CSV 字段说明
@@ -140,7 +140,7 @@ npm run uninstall:opencode
 
 ## 限制
 
-- 依赖 Node 24 自带的 `node:sqlite`
+- 需要 `opencode db` CLI 支持（opencode 自带）
 - 这是会话索引导出，不会切换 opencode UI 到旧线程
 - CSV 的路径、标题、模型等内容以 opencode 数据库记录为准
 - `first_prompt` 是从最早的用户消息里提取的简短文本，不是完整历史全文
@@ -180,7 +180,7 @@ npm run uninstall:opencode
 - Records each session title, directory, model, timestamps, and first prompt
 - Automatically saves structured history snapshots to the workspace `history/` directory
 - Preserves the exact `directory` where the session was opened
-- Uses Node 24 built-in `node:sqlite`, so no extra sqlite package is required
+- Uses `opencode db` CLI to query sessions — no extra sqlite package required
 - Provides `/his_sess` command to open the CSV from TUI
 
 ### Install
@@ -215,6 +215,6 @@ It now writes one central CSV file under the global opencode config directory in
 
 ### Limitations
 
-- Requires Node 24 built-in `node:sqlite`
+- Requires `opencode db` CLI (built into opencode)
 - Exports session metadata only
 - Does not switch the `opencode` UI to an old native thread
