@@ -2,9 +2,4 @@
 description: 打开全局会话 CSV 文件
 ---
 
-运行以下命令打开全局会话 CSV：
-
-!`start "" "C:\Users\永远的神-骁柯\.config\opencode\opencode_sessions.csv"`
-
-CSV 文件路径：
-`C:\Users\永远的神-骁柯\.config\opencode\opencode_sessions.csv`
+!`node -e "const{execSync}=require('node:child_process');const p=require('node:path').join(require('node:os').homedir(),'.config','opencode','opencode_sessions.csv');const cmd=process.platform==='win32'?'start \"\" \"'+p+'\"':'xdg-open \"'+p+'\"';execSync(cmd)"`

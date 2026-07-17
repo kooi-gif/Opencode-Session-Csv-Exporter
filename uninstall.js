@@ -39,11 +39,13 @@ async function cleanupConfig() {
 
 async function main() {
   await removeIfExists(path.join(targetRoot, "plugins", "session-csv.js"))
+  await removeIfExists(path.join(targetRoot, "plugins", "save-history.js"))
+  await removeIfExists(path.join(targetRoot, "commands", "his_sess.md"))
   await removeIfExists(path.join(targetRoot, "AGENTS.md"))
   await cleanupConfig()
 
   process.stdout.write([
-    "Removed global opencode session CSV exporter files.",
+    "Removed global opencode session CSV exporter + history saver files.",
     `Target: ${targetRoot}`,
   ].join("\n"))
 }
