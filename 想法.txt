@@ -1,0 +1,37 @@
+# 新项目想法：opencode-session-backup
+
+## 定位
+
+全量备份 opencode 会话，跨机迁移到另一台电脑上。
+
+## 与 CSV 项目的区别
+
+| 角度 | opencode-session-csv-exporter | opencode-session-backup |
+|------|-------------------------------|-------------------------|
+| 目的 | 查看 / 索引 | 迁移 / 还原 |
+| 数据范围 | session 元数据 | 完整的对话 + 文件修改记录 |
+| 输出 | CSV 表格 | zip / tar.gz 打包文件 |
+| 还原能力 | 无 | 在目标机器 import 还原 |
+
+## 技术思路
+
+依靠 opencode 自带 CLI：
+
+1. 遍历 session 列表 → `opencode session list --format json`
+2. 逐个导出 → `opencode export <session-id>` → 保存为 JSON
+3. 将所有 JSON 打包成一个迁移文件（.zip 或 .tar.gz）
+4. 目标机器：解包 → 逐个 `opencode import <file>`
+
+## 可选项
+
+- 导出时包含文件 diff？→ `opencode export --sanitize` 可控制是否脱敏
+- 只导出最近的 N 个 session？
+- 打包前校验：session ID 是否重复？
+- 迁移后提供总结：成功 N 个，失败 M 个
+
+## 与现有项目的关系
+
+- 同一个 GitHub 账号下
+- 现有项目不动，新项目独立仓库
+- install/uninstall 脚本模式保持一致
+- 用户按需选择
